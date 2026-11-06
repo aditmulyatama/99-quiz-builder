@@ -13,7 +13,11 @@ export const maxDuration = 60
 const MODEL = process.env.QUIZ_MODEL ?? 'google/gemini-3-flash'
 const MAX_ATTEMPTS = 2
 
-type AttemptResult = { ok: true; quiz: Quiz } | { ok: false; reason: string }
+type AttemptResult =
+  | { ok: true; quiz: Quiz }
+  | { ok: false; reason: string; fatal?: boolean }
+
+const CONFIG_ERROR_PATTERN = /credit card|unauthenticated|api key|forbidden|unauthorized/i
 
 async function attemptGeneration(
   input: GenerateQuizRequest,
@@ -40,10 +44,9 @@ async function attemptGeneration(
 
     return { ok: true, quiz: parsed.data }
   } catch (error) {
-    return {
-      ok: false,
-      reason: error instanceof Error ? error.message : 'Unknown generation error',
-    }
+    const reason = error instanceof Error ? error.message : 'Unknown generation error'
+    // Auth/billing failures won't fix themselves on retry, so stop immediately.
+    return { ok: false, reason, fatal: CONFIG_ERROR_PATTERN.test(reason) }
   }
 }
 
@@ -70,6 +73,15 @@ export async function POST(req: Request) {
       return Response.json({ quiz: result.quiz })
     }
     console.error(`[generate-quiz] attempt ${attempt} failed:`, result.reason)
+    if (result.fatal) {
+      return Response.json(
+        {
+          error:
+            'The AI service is not configured for this deployment yet (missing API key or AI Gateway billing). Please contact the app administrator.',
+        },
+        { status: 503 },
+      )
+    }
     previousError = result.reason
   }
 
