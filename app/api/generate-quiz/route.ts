@@ -10,14 +10,15 @@ import {
 
 export const maxDuration = 60
 
-const MODEL = process.env.QUIZ_MODEL ?? 'google/gemini-3-flash'
+const MODEL = process.env.QUIZ_MODEL ?? 'openai/gpt-5-mini'
 const MAX_ATTEMPTS = 2
 
 type AttemptResult =
   | { ok: true; quiz: Quiz }
   | { ok: false; reason: string; fatal?: boolean }
 
-const CONFIG_ERROR_PATTERN = /credit card|unauthenticated|api key|forbidden|unauthorized/i
+const CONFIG_ERROR_PATTERN =
+  /credit card|unauthenticated|api key|forbidden|unauthorized|free tier|paid credits|do not have access/i
 
 async function attemptGeneration(
   input: GenerateQuizRequest,
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
       return Response.json(
         {
           error:
-            'The AI service is not configured for this deployment yet (missing API key or AI Gateway billing). Please contact the app administrator.',
+            'The AI service is not configured for this deployment yet (missing API key, AI Gateway credits, or model access). Please contact the app administrator.',
         },
         { status: 503 },
       )

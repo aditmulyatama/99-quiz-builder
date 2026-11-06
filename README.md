@@ -64,7 +64,7 @@ Open http://localhost:3000.
 | Variable             | Required          | Description                                                                                                                                                    |
 | -------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `AI_GATEWAY_API_KEY` | Yes (locally)     | Vercel AI Gateway API key. Create one in the Vercel dashboard under **AI Gateway → API Keys**. The AI SDK reads it automatically; it is never hardcoded. |
-| `QUIZ_MODEL`         | No                | Override the model ID (format `provider/model`). Defaults to `google/gemini-3-flash`.                                                                          |
+| `QUIZ_MODEL`         | No                | Override the model ID (format `provider/model`). Defaults to `openai/gpt-5-mini`.                                                                               |
 
 When deployed on Vercel, the AI Gateway authenticates automatically with OIDC, so `AI_GATEWAY_API_KEY` is optional in production.
 
